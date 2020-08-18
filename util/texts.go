@@ -130,7 +130,7 @@ func EntityName(s string) string {
 // ColumnName gets string usable as struct field name
 func ColumnName(s string) string {
 	camelCased := CamelCased(Sanitize(s))
-	camelCased = ReplaceSuffix(ReplaceSuffix(camelCased, ID, Id), IDs, Ids)
+	camelCased = ReplaceSuffix(ReplaceSuffix(camelCased, Id, ID), Ids, IDs)
 
 	return strings.Title(camelCased)
 }

@@ -167,7 +167,7 @@ func NewTemplateColumn(entity model.Entity, column model.Column, options Options
 		tags = util.NewAnnotation().AddTag(tagName, "-")
 	}
 
-	tags.AddTag("json", util.LowerFirst(column.GoName))
+	tags.AddTag("json", util.LowerFirst(util.ReplaceSuffix(util.ReplaceSuffix(column.GoName, util.ID, util.Id), util.IDs, util.Ids)))
 
 	return TemplateColumn{
 		Column: column,
