@@ -7,7 +7,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/dizzyfool/genna/lib"
+	genna "github.com/dizzyfool/genna/lib"
 	"github.com/dizzyfool/genna/model"
 	"github.com/dizzyfool/genna/util"
 
@@ -62,9 +62,9 @@ type Options struct {
 
 // Def sets default options if empty
 func (o *Options) Def() {
-	if len(o.Tables) == 0 {
-		o.Tables = []string{util.Join(util.PublicSchema, "*")}
-	}
+	// if len(o.Tables) == 0 {
+	// 	o.Tables = []string{util.Join(util.PublicSchema, "*")}
+	// }
 }
 
 // Generator is base generator used in other generators

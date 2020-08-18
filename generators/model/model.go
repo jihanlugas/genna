@@ -75,9 +75,17 @@ func NewTemplateEntity(entity model.Entity, options Options) TemplateEntity {
 
 	tagName := tagName(options)
 	tags := util.NewAnnotation()
+
+	// fmt.Println(entity.GoName)
+	// fmt.Println(entity.GoNamePlural)
+	// fmt.Println(entity.PGName)
+	// fmt.Println(entity.PGSchema)
+	// fmt.Println(entity.PGFullName)
+
+	// tags.AddTag(tagName, util.Quoted(entity.PGSchema+"."+entity.PGFullName, true))
 	tags.AddTag(tagName, util.Quoted(entity.PGFullName, true))
 	if !options.NoAlias {
-		tags.AddTag(tagName, fmt.Sprintf("alias:%s", util.DefaultAlias))
+		tags.AddTag(tagName, fmt.Sprintf("alias:%s", entity.PGName))
 	}
 
 	if !options.NoDiscard {
@@ -90,7 +98,7 @@ func NewTemplateEntity(entity model.Entity, options Options) TemplateEntity {
 		Tag:    template.HTML(fmt.Sprintf("`%s`", tags.String())),
 
 		NoAlias: options.NoAlias,
-		Alias:   util.DefaultAlias,
+		Alias:   entity.PGName,
 
 		Columns: columns,
 
@@ -158,6 +166,8 @@ func NewTemplateColumn(entity model.Entity, column model.Column, options Options
 		comment = "// unsupported"
 		tags = util.NewAnnotation().AddTag(tagName, "-")
 	}
+
+	tags.AddTag("json", util.LowerFirst(column.GoName))
 
 	return TemplateColumn{
 		Column: column,

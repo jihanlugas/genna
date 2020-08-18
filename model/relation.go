@@ -28,9 +28,7 @@ func NewRelation(sourceColumns []string, targetSchema, targetTable string) Relat
 	}
 
 	typ := util.EntityName(targetTable)
-	if targetSchema != util.PublicSchema {
-		typ = util.CamelCased(targetSchema) + typ
-	}
+	typ = util.CamelCased(targetSchema) + typ
 
 	return Relation{
 		FKFields: sourceColumns,

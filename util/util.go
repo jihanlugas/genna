@@ -33,9 +33,9 @@ func Join(schema, table string) string {
 
 // JoinF joins table name and schema to full name filtering public
 func JoinF(schema, table string) string {
-	if schema == PublicSchema {
-		return table
-	}
+	// if schema == PublicSchema {
+	// 	return table
+	// }
 
 	return Join(schema, table)
 }

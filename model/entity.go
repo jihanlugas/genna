@@ -27,14 +27,10 @@ type Entity struct {
 // NewEntity creates new Entity from pg info
 func NewEntity(schema, pgName string, columns []Column, relations []Relation) Entity {
 	goName := util.EntityName(pgName)
-	if schema != util.PublicSchema {
-		goName = util.CamelCased(schema) + goName
-	}
+	goName = util.CamelCased(schema) + goName
 
 	goNamePlural := util.CamelCased(util.Sanitize(pgName))
-	if schema != util.PublicSchema {
-		goNamePlural = util.CamelCased(schema) + goNamePlural
-	}
+	goNamePlural = util.CamelCased(schema) + goNamePlural
 
 	entity := Entity{
 		GoName:       goName,
