@@ -1,6 +1,7 @@
 package model
 
 import (
+	"regexp"
 	"strings"
 
 	"github.com/dizzyfool/genna/util"
@@ -27,8 +28,11 @@ func NewRelation(sourceColumns []string, targetSchema, targetTable string) Relat
 		names[i] = util.ReplaceSuffix(util.ColumnName(name), util.ID, "")
 	}
 
+	numRegEx := regexp.MustCompile(`[0-9]`)
+
 	typ := util.EntityName(targetTable)
 	typ = util.CamelCased(targetSchema) + typ
+	typ = numRegEx.ReplaceAllString(typ, "")
 
 	return Relation{
 		FKFields: sourceColumns,
@@ -36,7 +40,8 @@ func NewRelation(sourceColumns []string, targetSchema, targetTable string) Relat
 
 		TargetPGName:     targetTable,
 		TargetPGSchema:   targetSchema,
-		TargetPGFullName: util.JoinF(targetSchema, targetTable),
+		TargetPGFullName: util.JoinF(util.SchemaNameInFull(targetSchema), targetTable),
+		// TargetPGFullName: util.JoinF(targetSchema, targetTable),
 
 		GoType: typ,
 	}

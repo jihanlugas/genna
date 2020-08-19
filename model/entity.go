@@ -1,6 +1,8 @@
 package model
 
 import (
+	"regexp"
+
 	"github.com/dizzyfool/genna/util"
 )
 
@@ -26,8 +28,11 @@ type Entity struct {
 
 // NewEntity creates new Entity from pg info
 func NewEntity(schema, pgName string, columns []Column, relations []Relation) Entity {
+	numRegEx := regexp.MustCompile(`[0-9]`)
+
 	goName := util.EntityName(pgName)
 	goName = util.CamelCased(schema) + goName
+	goName = numRegEx.ReplaceAllString(goName, "")
 
 	goNamePlural := util.CamelCased(util.Sanitize(pgName))
 	goNamePlural = util.CamelCased(schema) + goNamePlural
@@ -37,7 +42,8 @@ func NewEntity(schema, pgName string, columns []Column, relations []Relation) En
 		GoNamePlural: goNamePlural,
 		PGName:       pgName,
 		PGSchema:     schema,
-		PGFullName:   util.JoinF(schema, pgName),
+		PGFullName:   util.JoinF(util.SchemaNameInFull(schema), pgName),
+		// PGFullName: util.JoinF(schema, pgName),
 
 		Columns:   []Column{},
 		Relations: []Relation{},

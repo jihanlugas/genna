@@ -3,6 +3,7 @@ package model
 import (
 	"fmt"
 	"html/template"
+	"strconv"
 	"strings"
 
 	"github.com/dizzyfool/genna/model"
@@ -168,6 +169,35 @@ func NewTemplateColumn(entity model.Entity, column model.Column, options Options
 	}
 
 	tags.AddTag("json", util.LowerFirst(util.ReplaceSuffix(util.ReplaceSuffix(column.GoName, util.ID, util.Id), util.IDs, util.Ids)))
+
+	if !column.Nullable {
+		tags.AddTag("validate", "required")
+	}
+
+	// validate complex types
+	// if !column.Nullable && (column.IsArray || column.GoType == model.TypeMapInterface || column.GoType == model.TypeMapString) {
+	// untuk validate sqltype hstore atau json
+	// }
+
+	// validate FK
+	// if column.IsFK {
+	// 	if column.Nullable {
+	// 		return PZero
+	// 	}
+	// 	return Zero
+	// }
+
+	// validate strings len
+	if column.GoType == model.TypeString {
+		if column.MaxLen > 0 {
+			tags.AddTag("validate", "lte="+strconv.Itoa(column.MaxLen))
+		}
+	}
+
+	// validate enum
+	if len(column.Values) > 0 {
+		tags.AddTag("validate", "oneof="+fmt.Sprintf(`'%s'`, strings.Join(column.Values, `' '`)))
+	}
 
 	return TemplateColumn{
 		Column: column,

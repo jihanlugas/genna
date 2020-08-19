@@ -28,11 +28,12 @@ func New() *Generator {
 func (g *Generator) Generate() error {
 	options := g.Options()
 	return base.NewGenerator(options.URL).
-		Generate(
+		GenerateToFiles(
 			options.Tables,
 			options.FollowFKs,
 			options.UseSQLNulls,
 			options.Output,
+			BaseTemplate,
 			Template,
 			g.Packer(),
 			options.GoPgVer,

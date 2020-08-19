@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"log"
 	"os"
+	"strings"
 
 	genna "github.com/dizzyfool/genna/lib"
 	"github.com/dizzyfool/genna/model"
@@ -129,10 +130,28 @@ func (g Generator) Generate(tables []string, followFKs, useSQLNulls bool, output
 		return fmt.Errorf("read database error: %w", err)
 	}
 
-	return g.GenerateFromEntities(entities, output, tmpl, packer)
+	return g.GenerateFromEntities(entities, output, "", tmpl, packer)
 }
 
-func (g Generator) GenerateFromEntities(entities []model.Entity, output, tmpl string, packer Packer) error {
+func (g Generator) GenerateToFiles(tables []string, followFKs, useSQLNulls bool, outputPath, tmplBase, tmplEntities string, packer Packer, goPGVer int) error {
+	entities, err := g.Read(tables, followFKs, useSQLNulls, goPGVer)
+	if err != nil {
+		return fmt.Errorf("read database error: %w", err)
+	}
+
+	if baseErr := g.GenerateFromEntities(entities, outputPath, "/base.go", tmplBase, packer); baseErr != nil {
+		return baseErr
+	}
+
+	for i, entity := range entities {
+		if entityErr := g.GenerateFromEntities(entities[i:(i+1)], outputPath, "/"+strings.ToLower(entity.GoName)+".go", tmplEntities, packer); entityErr != nil {
+			return entityErr
+		}
+	}
+	return nil
+}
+
+func (g Generator) GenerateFromEntities(entities []model.Entity, outputPath, fileName, tmpl string, packer Packer) error {
 	parsed, err := template.New("base").Parse(tmpl)
 	if err != nil {
 		return fmt.Errorf("parsing template error: %w", err)
@@ -148,12 +167,12 @@ func (g Generator) GenerateFromEntities(entities []model.Entity, output, tmpl st
 		return fmt.Errorf("processing model template error: %w", err)
 	}
 
-	saved, err := util.FmtAndSave(buffer.Bytes(), output)
+	saved, err := util.FmtAndSave(buffer.Bytes(), outputPath+fileName)
 	if err != nil {
 		if !saved {
 			return fmt.Errorf("saving file error: %w", err)
 		}
-		log.Printf("formatting file %s error: %s", output, err)
+		log.Printf("formatting file %s error: %s", outputPath+fileName, err)
 	}
 
 	log.Printf("successfully generated %d models", len(entities))

@@ -127,6 +127,14 @@ func EntityName(s string) string {
 	return strings.Join(splitted, "")
 }
 
+func SchemaNameInFull(schema string) string {
+	if strings.Contains(strings.ToLower(schema), "shard") {
+		return "?SHARD"
+	} else {
+		return schema
+	}
+}
+
 // ColumnName gets string usable as struct field name
 func ColumnName(s string) string {
 	camelCased := CamelCased(Sanitize(s))
