@@ -25,12 +25,13 @@ type Column struct {
 
 	Import string
 
-	MaxLen int
-	Values []string
+	MaxLen   int
+	EnumType string
+	Values   []string
 }
 
 // NewColumn creates Column from pg info
-func NewColumn(pgName string, pgType string, nullable, sqlNulls, array bool, dims int, pk, fk bool, len int, values []string, goPGVer int) Column {
+func NewColumn(pgName string, pgType string, nullable, sqlNulls, array bool, dims int, pk, fk bool, len int, enumType string, values []string, goPGVer int) Column {
 	var err error
 
 	column := Column{
@@ -42,6 +43,7 @@ func NewColumn(pgName string, pgType string, nullable, sqlNulls, array bool, dim
 		IsPK:       pk,
 		IsFK:       fk,
 		MaxLen:     len,
+		EnumType:   enumType,
 		Values:     values,
 	}
 

@@ -20,10 +20,12 @@ type Entity struct {
 	Relations []Relation
 
 	Imports []string
+	Enums   []util.Enum
 
 	// helper indexes
 	colIndex util.Index
 	impIndex map[string]struct{}
+	enmIndex map[string]struct{}
 }
 
 // NewEntity creates new Entity from pg info
@@ -50,7 +52,9 @@ func NewEntity(schema, pgName string, columns []Column, relations []Relation) En
 		colIndex:  util.NewIndex(),
 
 		Imports:  []string{},
+		Enums:    []util.Enum{},
 		impIndex: map[string]struct{}{},
+		enmIndex: map[string]struct{}{},
 	}
 
 	if columns != nil {
@@ -81,6 +85,17 @@ func (e *Entity) AddColumn(column Column) {
 		if _, ok := e.impIndex[imp]; !ok {
 			e.impIndex[imp] = struct{}{}
 			e.Imports = append(e.Imports, imp)
+		}
+	}
+
+	if enm := column.EnumType; enm != "" {
+		if _, ok := e.enmIndex[enm]; !ok {
+			e.enmIndex[enm] = struct{}{}
+			e.Enums = append(e.Enums, util.Enum{
+				Name:    enm,
+				Values:  column.Values,
+				Entries: make([]util.EnumEntries, 0),
+			})
 		}
 	}
 }

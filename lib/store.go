@@ -62,16 +62,25 @@ type column struct {
 	IsPK       bool     `pg:"pk"`
 	IsFK       bool     `pg:"fk"`
 	MaxLen     int      `pg:"len"`
+	EnumType   string   `pg:"enumtype"`
 	Values     []string `pg:"enum,array"`
 }
 
+type enumDataType struct {
+	tableName struct{} `pg:",discard_unknown_columns"`
+
+	TypeName   string   `pg:"typname"`
+	EnumValues []string `pg:"enum_values,array"`
+}
+
 func (c column) Column(useSQLNulls bool, goPGVer int) model.Column {
-	return model.NewColumn(c.Name, c.Type, c.IsNullable, useSQLNulls, c.IsArray, c.Dimensions, c.IsPK, c.IsFK, c.MaxLen, c.Values, goPGVer)
+	return model.NewColumn(c.Name, c.Type, c.IsNullable, useSQLNulls, c.IsArray, c.Dimensions, c.IsPK, c.IsFK, c.MaxLen, c.EnumType, c.Values, goPGVer)
 }
 
 // Store is database helper
 type store struct {
-	db orm.DB
+	db     orm.DB
+	enumDT []enumDataType
 }
 
 // NewStore creates Store
@@ -171,10 +180,45 @@ func (s *store) Relations(tables []table) ([]relation, error) {
 	return relations, nil
 }
 
+// EnumType   string   `pg:"enumtype"`
+// 	Values     []string `pg:"enum,array"`
+func (s store) findEnumDataType(t string) (string, []string) {
+	var enumType string = ""
+	var enums []string
+	if len(s.enumDT) > 0 {
+		for _, enm := range s.enumDT {
+			if enm.TypeName == t {
+				enumType = enm.TypeName
+				enums = enm.EnumValues
+				break
+			}
+		}
+	}
+
+	return enumType, enums
+}
+
+func (s *store) EnumDataType() {
+	query := `select pg_type.typname, array_agg(e.enumlabel) as enum_values
+	from pg_enum e
+	join pg_type on pg_type.oid = e.enumtypid
+	group by 1`
+
+	var enumDataTyp []enumDataType
+	if _, err := s.db.Query(&enumDataTyp, query); err != nil {
+		fmt.Errorf("getting enum data type info error: %w", err)
+	}
+	s.enumDT = enumDataTyp
+}
+
 func (s store) Columns(tables []table) ([]column, error) {
 	ts := make([]interface{}, len(tables))
 	for i, t := range tables {
 		ts[i] = []string{t.Schema, t.Name}
+	}
+
+	if len(s.enumDT) == 0 {
+		s.EnumDataType()
 	}
 
 	query := `
@@ -183,13 +227,15 @@ func (s store) Columns(tables []table) ([]column, error) {
 		        select distinct true                   as is_enum,
 		                        sch.nspname            as table_schema,
 		                        tb.relname             as table_name,
-		                        col.attname            as column_name,
+								col.attname            as column_name,
+								pg_type.typname,
                                 array_agg(e.enumlabel) as enum_values
 		        from pg_class tb
 		        left join pg_namespace sch on sch.oid = tb.relnamespace
 		        left join pg_attribute col on col.attrelid = tb.oid
-		        inner join pg_enum e on e.enumtypid = col.atttypid
-				group by 1, 2, 3, 4
+				inner join pg_enum e on e.enumtypid = col.atttypid
+				inner join pg_type ON pg_type.oid = e.enumtypid
+				group by 1, 2, 3, 4, 5
 		    ),
 		    arrays as (
 		        select sch.nspname  as table_schema,
@@ -238,7 +284,8 @@ func (s store) Columns(tables []table) ([]column, error) {
 		                end                         as type,
 		                c.column_default            as def,
                         c.character_maximum_length  as len,
-						e.enum_values 				as enum
+						e.enum_values 				as enum,
+						e.typname					as enumtype
 		from information_schema.tables t
 		left join information_schema.columns c using (table_name, table_schema)
 		left join info i using (table_name, table_schema, column_name)
@@ -252,6 +299,17 @@ func (s store) Columns(tables []table) ([]column, error) {
 	var columns []column
 	if _, err := s.db.Query(&columns, query, pg.InMulti(ts...)); err != nil {
 		return nil, fmt.Errorf("getting columns info error: %w", err)
+	}
+
+	for idx, col := range columns {
+
+		if _, err := model.GoType(col.Type); err != nil {
+			if dataType, typeValues := s.findEnumDataType(col.Type); dataType != "" {
+				columns[idx].Type = "varchar"
+				columns[idx].Values = typeValues
+				columns[idx].EnumType = dataType
+			}
+		}
 	}
 
 	return columns, nil

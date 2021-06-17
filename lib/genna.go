@@ -2,9 +2,10 @@ package genna
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/dizzyfool/genna/model"
 	"github.com/dizzyfool/genna/util"
-	"log"
 
 	"github.com/go-pg/pg/v9/orm"
 )

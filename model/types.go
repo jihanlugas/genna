@@ -55,11 +55,11 @@ const (
 	TypePGPoint = "point"
 
 	// TypeInt is a go type
-	TypeInt = "int"
+	TypeInt = "IntStr"
 	// TypeInt32 is a go type
 	TypeInt32 = "int32"
 	// TypeInt64 is a go type
-	TypeInt64 = "int64"
+	TypeInt64 = "Int64Str"
 	// TypeFloat32 is a go type
 	TypeFloat32 = "float32"
 	// TypeFloat64 is a go type
@@ -71,7 +71,7 @@ const (
 	// TypeBool is a go type
 	TypeBool = "bool"
 	// TypeTime is a go type
-	TypeTime = "time.Time"
+	TypeTime = "*time.Time"
 	// TypeDuration is a go type
 	TypeDuration = "time.Duration"
 	// TypeMapInterface is a go type
@@ -169,7 +169,7 @@ func GoNullable(pgType string, useSQLNull bool) (string, error) {
 		// hstore & json & bytea types without pointers
 		return typ, nil
 	default:
-		return fmt.Sprintf("*%s", typ), nil
+		return fmt.Sprintf("%s", typ), nil
 	}
 }
 

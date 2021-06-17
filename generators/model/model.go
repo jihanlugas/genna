@@ -16,6 +16,8 @@ type TemplatePackage struct {
 
 	HasImports bool
 	Imports    []string
+	HasEnums   bool
+	Enums      []util.Enum
 
 	Entities []TemplateEntity
 }
@@ -23,6 +25,7 @@ type TemplatePackage struct {
 // NewTemplatePackage creates a package for template
 func NewTemplatePackage(entities []model.Entity, options Options) TemplatePackage {
 	imports := util.NewSet()
+	enums := util.NewSetEnum()
 
 	models := make([]TemplateEntity, len(entities))
 	for i, entity := range entities {
@@ -30,14 +33,22 @@ func NewTemplatePackage(entities []model.Entity, options Options) TemplatePackag
 			imports.Add(imp)
 		}
 
+		for _, enm := range entity.Enums {
+			enums.Add(enm)
+		}
+
 		models[i] = NewTemplateEntity(entity, options)
 	}
+
+	imports.Add("time")
 
 	return TemplatePackage{
 		Package: options.Package,
 
 		HasImports: imports.Len() > 0,
 		Imports:    imports.Elements(),
+		HasEnums:   enums.Len() > 0,
+		Enums:      enums.Elements(),
 
 		Entities: models,
 	}
@@ -56,6 +67,13 @@ type TemplateEntity struct {
 
 	HasRelations bool
 	Relations    []TemplateRelation
+
+	HasCreateBy  bool
+	HasCreateDt  bool
+	HasUpdateBy  bool
+	HasUpdateDt  bool
+	HasArchiveBy bool
+	HasArchiveDt bool
 }
 
 // NewTemplateEntity creates an entity for template
@@ -65,7 +83,28 @@ func NewTemplateEntity(entity model.Entity, options Options) TemplateEntity {
 	}
 
 	columns := make([]TemplateColumn, len(entity.Columns))
+	hasCreateBy := false
+	hasCreateDt := false
+	hasUpdateDt := false
+	hasUpdateBy := false
+	hasArchiveBy := false
+	hasArchiveDt := false
+
 	for i, column := range entity.Columns {
+		switch column.GoName {
+		case "CreateBy":
+			hasCreateBy = true
+		case "CreateDt":
+			hasCreateDt = true
+		case "UpdateDt":
+			hasUpdateDt = true
+		case "UpdateBy":
+			hasUpdateBy = true
+		case "ArchiveBy":
+			hasArchiveBy = true
+		case "ArchiveDt":
+			hasArchiveDt = true
+		}
 		columns[i] = NewTemplateColumn(entity, column, options)
 	}
 
@@ -105,6 +144,13 @@ func NewTemplateEntity(entity model.Entity, options Options) TemplateEntity {
 
 		HasRelations: len(relations) > 0,
 		Relations:    relations,
+
+		HasCreateBy:  hasCreateBy,
+		HasCreateDt:  hasCreateDt,
+		HasUpdateBy:  hasUpdateBy,
+		HasUpdateDt:  hasUpdateDt,
+		HasArchiveBy: hasArchiveBy,
+		HasArchiveDt: hasArchiveDt,
 	}
 }
 
@@ -168,7 +214,15 @@ func NewTemplateColumn(entity model.Entity, column model.Column, options Options
 		tags = util.NewAnnotation().AddTag(tagName, "-")
 	}
 
-	tags.AddTag("json", util.LowerFirst(util.ReplaceSuffix(util.ReplaceSuffix(column.GoName, util.ID, util.Id), util.IDs, util.Ids)))
+	if column.PGName != "company_id" {
+		tags.AddTag("json", util.LowerFirst(util.ReplaceSuffix(util.ReplaceSuffix(column.GoName, util.ID, util.Id), util.IDs, util.Ids)))
+	} else {
+		tags.AddTag("json", "-")
+	}
+
+	// if column.GoType == model.TypeInt64 {
+	// 	tags.AddTag("json", "string")
+	// }
 
 	if !column.Nullable {
 		tags.AddTag("validate", "required")
@@ -187,16 +241,22 @@ func NewTemplateColumn(entity model.Entity, column model.Column, options Options
 	// 	return Zero
 	// }
 
+	// validate enum
+	if len(column.Values) > 0 {
+		if column.Nullable {
+			tags.AddTag("validate", "omitempty")
+		}
+		if column.IsArray {
+			tags.AddTag("validate", "dive")
+		}
+		tags.AddTag("validate", "oneof="+fmt.Sprintf(`'%s'`, strings.Join(column.Values, `' '`)))
+	}
+
 	// validate strings len
 	if column.GoType == model.TypeString {
 		if column.MaxLen > 0 {
 			tags.AddTag("validate", "lte="+strconv.Itoa(column.MaxLen))
 		}
-	}
-
-	// validate enum
-	if len(column.Values) > 0 {
-		tags.AddTag("validate", "oneof="+fmt.Sprintf(`'%s'`, strings.Join(column.Values, `' '`)))
 	}
 
 	return TemplateColumn{
@@ -224,6 +284,8 @@ func NewTemplateRelation(relation model.Relation, options Options) TemplateRelat
 		comment = "// unsupported"
 		tags.AddTag(tagName, "-")
 	}
+
+	tags.AddTag("json", "-")
 
 	return TemplateRelation{
 		Relation: relation,

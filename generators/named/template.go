@@ -29,5 +29,28 @@ type {{.GoName}} struct {
 	{{range .Relations}}
 	{{.GoName}} *{{.GoType}} {{.Tag}} {{.Comment}}{{end}}{{end}}
 }
+
+func (m *{{.GoName}}) Name() string {
+	return "{{.GoName}}"
+}
+
+func (m *{{.GoName}}) BeforeInsert(u IntStr, now *time.Time) {
+	{{if .HasCreateBy}}m.CreateBy = u{{end}}{{if .HasCreateDt}}
+	m.CreateDt = now{{end}}{{if .HasUpdateBy}}
+	m.UpdateBy = u{{end}}{{if .HasUpdateDt}}
+	m.UpdateDt = now{{end}}
+}
+
+func (m *{{.GoName}}) BeforeUpdate(u IntStr, now *time.Time) {
+	{{if .HasUpdateBy}}m.UpdateBy = u{{end}}{{if .HasUpdateDt}}
+	m.UpdateDt = now{{end}}
+}
+
+func (m *{{.GoName}}) BeforeArchive(u IntStr, now *time.Time) {
+	{{if .HasArchiveBy}}m.ArchiveBy = u{{end}}{{if .HasArchiveDt}}
+	m.ArchiveDt = now{{end}}{{if .HasUpdateBy}}
+	m.UpdateBy = u{{end}}{{if .HasUpdateDt}}
+	m.UpdateDt = now{{end}}
+}
 {{end}}
 `

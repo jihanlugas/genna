@@ -133,18 +133,22 @@ func (g Generator) Generate(tables []string, followFKs, useSQLNulls bool, output
 	return g.GenerateFromEntities(entities, output, "", tmpl, packer)
 }
 
-func (g Generator) GenerateToFiles(tables []string, followFKs, useSQLNulls bool, outputPath, tmplBase, tmplEntities string, packer Packer, goPGVer int) error {
+func (g Generator) GenerateToFiles(tables []string, followFKs, useSQLNulls bool, outputPath, tmplEnum, tmplBase, tmplEntities string, packer Packer, goPGVer int) error {
 	entities, err := g.Read(tables, followFKs, useSQLNulls, goPGVer)
 	if err != nil {
 		return fmt.Errorf("read database error: %w", err)
 	}
 
-	if baseErr := g.GenerateFromEntities(entities, outputPath, "/base.go", tmplBase, packer); baseErr != nil {
+	if baseErr := g.GenerateFromEntities(entities, outputPath, "/models/base.go", tmplBase, packer); baseErr != nil {
 		return baseErr
 	}
 
+	if enumErr := g.GenerateFromEntities(entities, outputPath, "/constant/enums.go", tmplEnum, packer); enumErr != nil {
+		return enumErr
+	}
+
 	for i, entity := range entities {
-		if entityErr := g.GenerateFromEntities(entities[i:(i+1)], outputPath, "/"+strings.ToLower(entity.GoName)+".go", tmplEntities, packer); entityErr != nil {
+		if entityErr := g.GenerateFromEntities(entities[i:(i+1)], outputPath, "/models/"+strings.ToLower(entity.GoName)+".go", tmplEntities, packer); entityErr != nil {
 			return entityErr
 		}
 	}

@@ -33,6 +33,7 @@ func (g *Generator) Generate() error {
 			options.FollowFKs,
 			options.UseSQLNulls,
 			options.Output,
+			EnumTemplate,
 			BaseTemplate,
 			Template,
 			g.Packer(),
