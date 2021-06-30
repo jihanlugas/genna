@@ -210,7 +210,7 @@ func Test_column_Column(t *testing.T) {
 				MaxLen:     0,
 				Values:     []string{},
 			},
-			want: model.NewColumn("userId", model.TypePGInt8, false, false, false, 0, true, false, 0, []string{}, 9),
+			want: model.NewColumn("userId", model.TypePGInt8, false, false, false, 0, true, false, 0, "", []string{}, 9),
 		},
 	}
 	for _, tt := range tests {

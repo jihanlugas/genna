@@ -139,9 +139,9 @@ func (g Generator) GenerateToFiles(tables []string, followFKs, useSQLNulls bool,
 		return fmt.Errorf("read database error: %w", err)
 	}
 
-	if baseErr := g.GenerateFromEntities(entities, outputPath, "/models/base.go", tmplBase, packer); baseErr != nil {
-		return baseErr
-	}
+	// if baseErr := g.GenerateFromEntities(entities, outputPath, "/models/base.go", tmplBase, packer); baseErr != nil {
+	// 	return baseErr
+	// }
 
 	if enumErr := g.GenerateFromEntities(entities, outputPath, "/constant/enums.go", tmplEnum, packer); enumErr != nil {
 		return enumErr
