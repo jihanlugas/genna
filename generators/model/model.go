@@ -40,7 +40,7 @@ func NewTemplatePackage(entities []model.Entity, options Options) TemplatePackag
 		models[i] = NewTemplateEntity(entity, options)
 	}
 
-	imports.Add("time")
+	// imports.Add("time")
 
 	return TemplatePackage{
 		Package: options.Package,
@@ -130,7 +130,7 @@ func NewTemplateEntity(entity model.Entity, options Options) TemplateEntity {
 
 	if !options.NoDiscard {
 		// leading comma is required
-		tags.AddTag("pg", ",discard_unknown_columns")
+		tags.AddTag("db", ",discard_unknown_columns")
 	}
 
 	return TemplateEntity{
@@ -205,7 +205,7 @@ func NewTemplateColumn(entity model.Entity, column model.Column, options Options
 
 	// soft_delete tag
 	if options.SoftDelete == column.PGName && column.Nullable && column.GoType == model.TypeTime && !column.IsArray {
-		tags.AddTag("pg", ",soft_delete")
+		tags.AddTag("db", ",soft_delete")
 	}
 
 	// ignore tag
@@ -279,7 +279,7 @@ type TemplateRelation struct {
 func NewTemplateRelation(relation model.Relation, options Options) TemplateRelation {
 	comment := ""
 	tagName := tagName(options)
-	tags := util.NewAnnotation().AddTag("pg", "fk:"+strings.Join(relation.FKFields, ","))
+	tags := util.NewAnnotation().AddTag("db", "fk:"+strings.Join(relation.FKFields, ","))
 	if len(relation.FKFields) > 1 {
 		comment = "// unsupported"
 		tags.AddTag(tagName, "-")
@@ -324,8 +324,5 @@ func jsonType(mp map[string]string, schema, table, field string) (string, bool) 
 }
 
 func tagName(options Options) string {
-	if options.GoPgVer == 9 {
-		return "pg"
-	}
-	return "sql"
+	return "db"
 }

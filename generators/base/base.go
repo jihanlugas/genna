@@ -133,7 +133,7 @@ func (g Generator) Generate(tables []string, followFKs, useSQLNulls bool, output
 	return g.GenerateFromEntities(entities, output, "", tmpl, packer)
 }
 
-func (g Generator) GenerateToFiles(tables []string, followFKs, useSQLNulls bool, outputPath, tmplEnum, tmplBase, tmplEntities string, packer Packer, goPGVer int) error {
+func (g Generator) GenerateToFiles(tables []string, followFKs, useSQLNulls bool, outputPath, tmplEnum, tmplBase, tmplEntities string, packer Packer, goPGVer int, pkgInput string) error {
 	entities, err := g.Read(tables, followFKs, useSQLNulls, goPGVer)
 	if err != nil {
 		return fmt.Errorf("read database error: %w", err)
@@ -148,7 +148,7 @@ func (g Generator) GenerateToFiles(tables []string, followFKs, useSQLNulls bool,
 	}
 
 	for i, entity := range entities {
-		if entityErr := g.GenerateFromEntities(entities[i:(i+1)], outputPath, "/models/"+strings.ToLower(entity.GoName)+".go", tmplEntities, packer); entityErr != nil {
+		if entityErr := g.GenerateFromEntities(entities[i:(i+1)], outputPath, "/"+pkgInput+"/"+strings.ToLower(entity.GoName)+".go", tmplEntities, packer); entityErr != nil {
 			return entityErr
 		}
 	}

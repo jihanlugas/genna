@@ -38,5 +38,6 @@ func (g *Generator) Generate() error {
 			Template,
 			g.Packer(),
 			options.GoPgVer,
+			options.Package,
 		)
 }
