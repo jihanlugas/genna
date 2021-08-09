@@ -214,11 +214,8 @@ func NewTemplateColumn(entity model.Entity, column model.Column, options Options
 		tags = util.NewAnnotation().AddTag(tagName, "-")
 	}
 
-	if column.PGName != "company_id" {
-		tags.AddTag("json", util.LowerFirst(util.ReplaceSuffix(util.ReplaceSuffix(column.GoName, util.ID, util.Id), util.IDs, util.Ids)))
-	} else {
-		tags.AddTag("json", "-")
-	}
+	tags.AddTag("json", util.LowerFirst(util.ReplaceSuffix(util.ReplaceSuffix(column.GoName, util.ID, util.Id), util.IDs, util.Ids)))
+	tags.AddTag("form", util.LowerFirst(util.ReplaceSuffix(util.ReplaceSuffix(column.GoName, util.ID, util.Id), util.IDs, util.Ids)))
 
 	// if column.GoType == model.TypeInt64 {
 	// 	tags.AddTag("json", "string")
