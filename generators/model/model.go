@@ -216,6 +216,7 @@ func NewTemplateColumn(entity model.Entity, column model.Column, options Options
 
 	tags.AddTag("json", util.LowerFirst(util.ReplaceSuffix(util.ReplaceSuffix(column.GoName, util.ID, util.Id), util.IDs, util.Ids)))
 	tags.AddTag("form", util.LowerFirst(util.ReplaceSuffix(util.ReplaceSuffix(column.GoName, util.ID, util.Id), util.IDs, util.Ids)))
+	tags.AddTag("query", util.LowerFirst(util.ReplaceSuffix(util.ReplaceSuffix(column.GoName, util.ID, util.Id), util.IDs, util.Ids)))
 
 	// if column.GoType == model.TypeInt64 {
 	// 	tags.AddTag("json", "string")
