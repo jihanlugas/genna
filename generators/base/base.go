@@ -124,13 +124,17 @@ func ReadFlags(command *cobra.Command) (conn, output string, tables []string, fo
 }
 
 // Generate runs whole generation process
-func (g Generator) Generate(tables []string, followFKs, useSQLNulls bool, output, tmpl string, packer Packer, goPGVer int) error {
+func (g Generator) Generate(tables []string, followFKs, useSQLNulls bool, output, tmplEnum, tmpl string, packer Packer, goPGVer int) error {
 	entities, err := g.Read(tables, followFKs, useSQLNulls, goPGVer)
 	if err != nil {
 		return fmt.Errorf("read database error: %w", err)
 	}
 
-	return g.GenerateFromEntities(entities, output, "", tmpl, packer)
+	if enumErr := g.GenerateFromEntities(entities, output, "/constant/enums.go", tmplEnum, packer); enumErr != nil {
+		return enumErr
+	}
+
+	return g.GenerateFromEntities(entities, output, "/model/model.go", tmpl, packer)
 }
 
 func (g Generator) GenerateToFiles(tables []string, followFKs, useSQLNulls bool, outputPath, tmplEnum, tmplBase, tmplEntities string, packer Packer, goPGVer int) error {

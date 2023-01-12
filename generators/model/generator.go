@@ -121,6 +121,7 @@ func (g *Basic) Generate() error {
 			g.options.FollowFKs,
 			g.options.UseSQLNulls,
 			g.options.Output,
+			EnumTemplate,
 			Template,
 			g.Packer(),
 			g.options.GoPgVer,

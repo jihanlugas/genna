@@ -83,6 +83,7 @@ func (g *Validate) Generate() error {
 			g.options.FollowFKs,
 			false,
 			g.options.Output,
+			EnumTemplate,
 			Template,
 			g.Packer(),
 			g.options.GoPgVer,

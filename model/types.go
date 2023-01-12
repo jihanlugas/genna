@@ -55,11 +55,11 @@ const (
 	TypePGPoint = "point"
 
 	// TypeInt is a go type
-	TypeInt = "IntStr"
+	TypeInt = "int"
 	// TypeInt32 is a go type
 	TypeInt32 = "int32"
 	// TypeInt64 is a go type
-	TypeInt64 = "Int64Str"
+	TypeInt64 = "int64"
 	// TypeFloat32 is a go type
 	TypeFloat32 = "float32"
 	// TypeFloat64 is a go type
